@@ -1,0 +1,496 @@
+\documentclass{beamer}
+\usepackage[export]{adjustbox}
+
+\title{NEAT}
+\author{\small 01710501068}
+\institute{\small Jadavpur University}
+\date{\small February, 2021}
+\begin{document}
+%-----------------------------------------------------------------------------
+
+\small
+
+% slide: title
+\begin{frame}
+\titlepage
+\end{frame}
+
+% slide: neuroevolution 
+\begin{frame}
+\frametitle{Neuro-Evolution}
+  Neuro-Evolution is the practice of generating Artificial Neural Networks using evolutionary algorithms. This might involve tuning only the weights (parameters) of a network with the topology decided beforehand. Or both the topology and the connection weights might be evolved using a genetic algorithm. This can be used to solve control tasks by using a measure of the network's performance for the task as fitness. So it presents an alternative to statistical methods which attempt to estimate particular actions in particular states of the world (reinforcement learning).
+\bigbreak
+  Two main types of neuro-evolution
+\begin{itemize}
+  \item conventional fixed-topology (only evolve weights)
+  \item TWEANN (topology and weight evolving artificial neural network)
+\end{itemize}
+\end{frame}
+
+% slide: history
+\begin{frame}
+\begin{itemize}
+  \item \textbf{Moriarty and Miikkulainen, 1996} showed that neuro-evolution was faster than reinforcement learning in specific tasks like \textbf{single pole balancing} and \textbf{robotic arm movement}.
+  \item \textbf{Chen et al., 1993} has shown modifying the network structure can be effective as part of supervised training.
+  \item \textbf{Gruau et al., 1996} claimed that time is wasted on deciding the no. of hidden nodes by trial and error, so evolving topology would be more efficient. He showed it on a pole balancing task.
+  \item \textbf{Gomez and Miikkulainen, 1999} showed that structure was not important for that task. It used a method called Enforced Subpopulations and solved the problem 5 times faster.
+  \item \textbf{Cybenko, 1989} has shown a fully connected network can approximate any continuous function.
+\bigbreak
+because NE searches for a behavior instead of a value function, it is effective in problems with
+continuous and high-dimensional state spaces. but can evolving structure provide any advantage ?
+\end{itemize}
+\end{frame}
+
+%slide: neat
+\begin{frame}
+Neuro Evolution of Augmenting Topologies (NEAT) is a method that wants to minimize the no. of dimensions of the search space over connection weights by evolving the structure of the neural network along with the weights.\\They want to start with a minimal network and only keep stuctures that are useful.
+\end{frame}
+
+
+% slide: encoding
+\begin{frame}
+\frametitle{Encoding}
+how would the neural network be representated as a chormosome ?
+\begin{block}{earlier attempts}
+\begin{itemize}
+  \item binary encoding: the connection matrix of the network is representated using a bit string. {[sGA]}\\the no. of bits is required is the square of the no. of nodes so the size of chromosome increases quickly.
+  \item graph encoding: a grid representing the adjacency matrix followed by a genome of node definitions specifying incoming and outgoing connections. {[PDGP]}
+\end{itemize}
+if the no. of nodes is fixed, the 2D represntation would allow easy \textbf{subgraph swapping}. swap all the connections for a particular node by swapping the row between the matrices.
+\end{block}
+\end{frame}
+
+% slide: encoding neat
+\begin{frame}
+\frametitle{Encoding}
+\begin{block}{NEAT}
+\begin{itemize}
+  \item node genes: a list of input, output and hidden nodes that can be connected.
+  \item connection genes: specifies the in-node, out-node, an innovation no. and an enable bit.
+\end{itemize}
+\end{block}
+\includegraphics[scale=0.24]{./img/encoding.png}
+\end{frame}
+
+
+% slide: mutation
+\begin{frame}
+\frametitle{Mutation}
+\scriptsize
+Mutation can change both connection weights and network structures.
+\begin{itemize}
+  \item connection weights: each one is changed or kept, based on a probability check.
+  \item network structure
+  \begin{itemize}
+    \tiny
+    \item \textbf{add connection:} a single connection gene with random weight is added connecting 2 previously unconnected nodes.
+    \item \textbf{add node:} a connection is split. first a new node gene is added. then an old connection is disabled, and 2 new connections are added in it's place going through the new node. the connection leading into the new node receives weight=1 and the connection leading out receives the weight of the old(disabled) connection.
+  \end{itemize}
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.27]{./img/mutation.png}
+\end{figure}
+\end{frame}
+
+
+% slide: competing conventions
+\begin{frame}
+\frametitle{Competing Conventions}
+Competing conventions means having more than one way to express a solution to a weight optimization problem with a neural network. When genomes representing the same solution do not have the same encoding, crossover is likely to produce damaged offspring.
+\\
+The same problem is present in nature as well. During reproduction if any gene can insert itself in any position on the genome without any indication of which gene is which, life probably would not have succeeded. In E.coli a protein lines up the homologous genes between 2 genomes before cross-over occurs. So that the right genes can be replaced with the right genes.
+\end{frame}
+
+
+% slide: historical origin
+\begin{frame}
+\frametitle{Historical Origin}
+NEAT tracks the historical origin of each gene in order to line up the genes representing the same structure during cross-over. Two genes with the same historical origin must represent the same structure (with possibly different weights). Whenever a new gene is created from mutation, an innovation number is incremented and assigned to the gene. The innovation numbes represent a chornology in which the genes were added.
+\\
+When the same structural innvoation occurs through 2 different mutations in the same generation they are given the same innovation number. To prevent expolsion of innvoation numbers.
+\end{frame}
+
+% slide: crossover 1
+\begin{frame}
+\frametitle{Crossover Problem}
+\begin{figure}
+\includegraphics[scale=0.2]{./img/cross1.jpg}
+\end{figure}
+\end{frame}
+
+% slide: crossover 2
+\begin{frame}
+\frametitle{Crossover}
+\begin{figure}
+\includegraphics[scale=0.25]{./img/crossover.png}
+\end{figure}
+\end{frame}
+
+% slide: crossover 3
+\begin{frame}
+\frametitle{Crossover}
+When crossing over the genes with same innovation numbers are lined up. Genes that do not line up are called disjoint or excess based on whether the occur within or outside the range of the other parent's innovation numbers. They represent structure that is not present in the other genome.
+\end{frame}
+
+% slide: crossover 4
+\begin{frame}
+\frametitle{Crossover}
+\begin{figure}
+\includegraphics[scale=0.12]{./img/cross2.jpg}
+\includegraphics[scale=0.12]{./img/cross3.jpg}
+\end{figure}
+\end{frame}
+
+
+% slide: mutation problem
+\begin{frame}
+\frametitle{Mutation Problem}
+When a new node or connection is added the fitness of the network would often be reduced. Because it is unlikely that a newly added connection with a random weight would express a useful function. Due to the loss of fitness the innovation is unlikely to survive long enough for the weights optimized. So it is necessary to have some mechanism to protect it.
+\bigbreak
+In nature different structures tend to be in different species that compete in different niches. So innovations are protected within a niche. Similarly networks with innovations can be isolated into their own species.
+\bigbreak
+To do this we would need some measure of compatibility between networks and a threshold to determine which networks should belong to the same species.
+\end{frame}
+
+% slide: speciation 1
+\begin{frame}
+\frametitle{Speciation}
+The no. of disjoint and excess genes between a pair of genomes is a natural measure of their compatibility distance.
+\\
+So the distance is calculated as a linear combination of the no. of excess genes E, disjoint genes D, and the average weight differnce of matching genes. N = no. of genes in the larger genome.
+\\
+\begin{figure}
+\includegraphics[scale=0.35]{./img/compatibility.png}
+\end{figure}
+\end{frame}
+
+% slide: speciation 2
+\begin{frame}
+\frametitle{Speciation}
+\begin{itemize}
+\item Each existing species would be represented by a random genome inside the species from the previous generation.
+\item A genome g in the current generation is placed in the first species with which it is compatible.
+\item they are using explicity fitness sharing. meaning the fitness of an individual is scaled down by the no. of individuals in the same species.
+\begin{figure}
+\includegraphics[scale=0.35]{./img/fitness.png}
+\end{figure}
+\end{itemize}
+\end{frame}
+
+% slide: survival
+\begin{frame}
+\frametitle{Survival}
+\begin{itemize}
+\item each species is given a quota of no. of offspring in the population based on the average fitness of the species.
+\item no. of offspring = (average fitness of a species)*(total population size)/(sum of average fitnesses of all species)
+\item the lowest performing members of each species are eliminated and the offspring of the remaining the members are used to replace the population. The no. offspring would be divided among the remaining members of each species.
+\item the champion of a species with more than 5 networks was carried over unchanged.
+\item when the fitness did not increase for more than 20 generations only the top 2 species were allowed to reproduce.
+\end{itemize}
+\end{frame}
+
+% slide: initial population
+\begin{frame}
+\frametitle{Initial Population}
+\begin{itemize}
+\item other neuro-evolution methods typically start with an initial population of random topologies in order to introduce diversity from the start.
+\item NEAT focuses the search towards lower dimensional spaces by reducing the network structure. It starts with a uniform population of networks with 0 hidden nodes. New structure is added incrementally through mutations and only those structures survive that are found to be useful from fitness evaluations.
+\end{itemize}
+\end{frame}
+
+% slide: parameters
+\begin{frame}
+\scriptsize
+\frametitle{Parameters}
+\begin{itemize}
+\item population size 150
+\item c1 = 1.0, c2 = 1.0
+\item c3 = 0.4 to allow for finer distinction based on weight differences
+\item 80\% chance for weights to be mutated
+\begin{itemize}
+\scriptsize
+\item 90\% chance to be uniformly perturbed, 10\% chance to be assigned new random value.
+\end{itemize}
+\item 75\% for an inherited gene to be disabled if it was disabled in either parent
+\item 25\% of offspring resulted from mutation without crossover
+\item inter-species mating rate 0.001
+\item probability of adding a new node was 0.03
+\item probability of adding a new link was 0.05 [7.5]
+\item \includegraphics[scale=0.5]{./img/transfer.png}
+\end{itemize}
+\end{frame}
+
+% slide: xor verification 1
+\begin{frame}
+\scriptsize
+\frametitle{XOR verification}
+XOR is not linearly separable so a neural network requires hidden nodes to calculate it.
+It can be used to test NEAT's ability to evolve structure.
+\begin{itemize}
+\item the input layer consisted of 2 input variables and 1 bias (always 1). there was no hidden node in the initial network and 1 output node.
+\item there were 3 connection genes in each member of the inital population. each connecting a input/bias node to the output. each with a random weight.
+\item fitness was calculated as
+\\
+4 - (sum of distance from ans for all 4 input combinations)
+\\
+so that higher fitness would mean better network.
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.25]{./img/xor1.png}
+\end{figure}
+\end{frame}
+
+% slide: xor verification 2
+\begin{frame}
+\frametitle{XOR verification}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/xor2.jpg}
+\end{figure}
+\end{frame}
+
+% slide: xor verification 3
+\begin{frame}
+\frametitle{XOR verification}
+\begin{itemize}
+\item 100 experimental runs were performed
+\item NEAT finds a structure for XOR in an average of 32 generations.
+\item On average the solution network had 2.35 hidden nodes and 7.48 non-disabled connection genes.
+\item The optimal solution (with a single hidden node) was found in 22 of the 100 runs.
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.25]{./img/xor1.png}
+\end{figure}
+\end{frame}
+
+% slide: xor verification 4
+\begin{frame}
+\scriptsize
+\frametitle{XOR verification}
+rand()\%10 - 5
+\begin{figure}
+\includegraphics[scale=0.16]{./img/xor_faltu.png}
+\end{figure}
+\end{frame}
+
+% slide: single pole balancing
+\begin{frame}
+\frametitle{single pole balancing}
+\begin{itemize}
+\item a pole is attached to a cart by a hinge and the neural network must apply force to the cart to keep the pole balanced for as long as possible without going beyond the boundaries of the track.
+\item the position of the cart, position(angle) of the pole, velocity of cart, (angular)velocity of pole are input at each state.
+\item this version has become easy for modern methods
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/singlepole.png}
+\end{figure}
+\end{frame}
+
+% slide: double pole balancing 1
+\begin{frame}
+\frametitle{double pole balancing}
+\begin{itemize}
+\item 2 poles are attached to a cart by a hinge and the neural network must apply force to the cart to keep the poles balanced for as long as possible without going beyond the boundaries of the track.
+\item the position of the cart, position(angle) of the poles, velocity of cart, (angular)velocities of pole are input at each state.
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.8]{./img/doublepole.png}
+\end{figure}
+\end{frame}
+
+% slide: double pole balancing 2
+\begin{frame}
+\frametitle{double pole balancing}
+\begin{itemize}
+  % \item The Runge-Kutta fourth-order method was used to implement the dynamics of the system with a step size of 0.01s
+  \item All state variables were scaled to [-1.0, 1.0] before being fed to the network
+  \item Networks output a force every 0.02 seconds between [-10, 10]N
+  \item The poles were 0.1m and 1.0m long
+  \item The initial position of the long pole was 1 degree and the short pole was upright
+  \item the track was 4.8 meters long
+  \item 2 versions
+  \begin{itemize}
+    \item with velocities
+    \item without velocities
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% slide: double pole balancing 3
+\begin{frame}
+\frametitle{double pole balancing with velocity}
+\begin{itemize}
+  \item pole is considered balanced between -36 and 36 degrees.
+  \item fitness was measured as no. of time-steps that both the poles remained balanced.
+  \item NEAT used less hidden nodes on average than fixed-topology methods.
+\end{itemize}
+\end{frame}
+
+% slide: double pole balancing 4
+\begin{frame}
+\frametitle{double pole balancing without velocity}
+\begin{itemize}
+  \item velocities would not be provided as part of input
+  \item non-markovian task
+  \item an internal state has to be kept to estimate velocity information
+  \item pole is considered balanced between -36 and 36 degrees
+  \item special fitness function was created to penalize oscilliations
+  \includegraphics[scale=0.3]{./img/dpnv.png}  
+  \item t = no. of time-steps both the poles remained balanced during 1000 total time-steps
+  \item Fitness = 0.1 f1 + 0.9 f2
+\end{itemize}
+\end{frame}
+
+% slide: double pole balancing 5
+\begin{frame}
+\frametitle{double pole balancing without velocity}
+Under Gruau et al's criteria for a solution, the champion of each generation is tested on generalization to make sure it is robust. This test takes a lot more time than the fitness test, which is why it is applied only to the champion. In addition to balancing both poles for 100,000 time steps, the winning controller must balance both poles from 625 different initial states, each for 1,000 times steps. The number of successes is called the generalization performance of the solution. In order to count as a solution, a network needs to generalize to at least 200 of the 625 initial states.
+\bigbreak
+initial states are created by giving each of the input variables (cart position, cart velocity, long pole angle, long pole angular velocity) 0.05, 0.25, 0.5, 0.75, 0.95 scaled to the range of the input variable.
+\end{frame}
+
+% slide: double pole balancing 6
+\begin{frame}
+\frametitle{double pole balancing without velocity}
+\begin{itemize}
+ \item NEAT takes 25 times fewer evaluations than Gruau’s original benchmark, showing that the way in which structure is evolved has significant impact on performance
+ \item NEAT is also 5 times faster than ESP, showing that structure evolution can indeed perform better than evolution of fixed topologies
+ \begin{figure}
+ \includegraphics[scale=0.3]{./img/dpnv_result.png} 
+ \end{figure}
+\end{itemize}
+\end{frame}
+
+% slide: double pole balancing 7
+\begin{frame}
+\frametitle{double pole balancing without velocity}
+\begin{figure}
+\includegraphics[scale=0.24]{./img/dpnv_neat.png}
+\end{figure}
+\end{frame}
+
+% slide: ablation
+\begin{frame}
+\frametitle{ablation}
+\begin{figure}
+\includegraphics[scale=0.3]{./img/ablation1.png}
+\end{figure}
+\begin{figure}
+\includegraphics[scale=0.3]{./img/ablation2.png}
+\end{figure}
+\end{frame}
+
+
+% slide: mari/o 1
+\begin{frame}
+\scriptsize
+\frametitle{MarI/O}
+\begin{itemize}
+\item NEAT was used to succesfully train a neural network to play a level of super mario world.
+\item progress through the level was used as fitness value.
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/mario1.png}
+\end{figure}
+\end{frame}
+
+% slide: mari/o 2
+\begin{frame}
+\scriptsize
+\frametitle{MarI/O}
+\begin{block}{fitness}
+the x co-ordinate of the player was read directly from the emulated memory. the exact bytes being used to store mario's co-ordinates had to be identified.
+\begin{figure}
+\includegraphics[scale=0.25]{./img/lua.png}
+\end{figure}
+\end{block}
+\end{frame}
+
+% slide: mari/o 3
+\begin{frame}
+\scriptsize
+\frametitle{MarI/O}
+\begin{itemize}
+\item the network was able to beat the first level of super mario brothers
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/mario2.png}
+\end{figure}
+\end{frame}
+
+% slide: mari/o 4
+\begin{frame}
+\scriptsize
+\frametitle{MarI/O}
+\begin{itemize}
+\item in the 2nd level it knew a single frame jump was possible
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/mario3.png}
+\end{figure}
+\end{frame}
+
+% slide: pacman
+\begin{frame}
+\scriptsize
+\frametitle{pacman}
+\begin{itemize}
+\item NEAT was also used to train an AI to finish pacman (eat all the dots)
+\end{itemize}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/pacman.png}
+\end{figure}
+\end{frame}
+
+
+% slide: variations
+\begin{frame}
+\frametitle{variations}
+\begin{itemize}
+\item rtNEAT
+\item HyperNEAT
+\item cgNEAT
+\item odNEAT
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\scriptsize
+\begin{columns}
+\column{0.5\textwidth}
+\begin{itemize}
+  \item neuroevolution
+  \item history
+  \item encoding
+  \item mutation
+  \item competing conventions
+  \item cross-over
+  \item speciation
+  \item survival
+  \item initial population
+  \item xor verification
+  \item single pole balancing
+  \item double pole balancing
+  \item double pole balancing without velocity
+  \item mario
+  \item pacman
+  \item comparison
+\end{itemize}
+\column{0.5\textwidth}
+\begin{figure}
+\includegraphics[scale=0.15]{./img/singlepole.png}
+\end{figure}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{reference}
+\begin{itemize}
+\item Kenneth O. Stanley, Risto Miikulainen Evolving Neural Networks through Augmenting Topologies, Evolutionary computation, 2002
+\item MarI/O
+\end{itemize}
+\end{frame}
+
+%-----------------------------------------------------------------------------
+\end{document}
+
