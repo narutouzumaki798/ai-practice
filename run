@@ -1,0 +1,9 @@
+file=minimax.cpp
+
+if g++ $file; then
+	echo -e "\n\n compile hoe geche\n\n"
+	./a.out < in.txt
+else
+	echo -e "\n\n hocche na\n\n"
+	g++ $file 2>&1 | head
+fi
